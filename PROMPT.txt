@@ -1,0 +1,9 @@
+A smartphone application for managing a monthly budget.
+It should feature a small graph in the top quarter of the screen showing the budget's evolution since the start of the month (relative to a fixed initial allocation).The rest of the screen should be divided into 2 columns and 4 rows of "tiles," each representing a budget category (transport, meals, leisure, etc.). Each tile must display the total amount already spent in that category. Users should be able to select a category to view a list of the month's expenses (date, description, amount) and add a new one.
+
+Key Features Summary:
+- Visual Tracking: A progress graph in the upper 1/4 of the interface.
+- Grid Layout: An 8-tile dashboard (2x4) for quick category overviews.
+- Detailed Logging: Categorized lists with full transaction details (date, description, and price).
+- Data Entry: Easy "add expense" functionality within each category.
+- Budget History: Ability to navigate back 12 month in the past to see previous monthes.
