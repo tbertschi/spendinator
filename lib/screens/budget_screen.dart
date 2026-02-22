@@ -40,12 +40,20 @@ class _BudgetScreenState extends State<BudgetScreen> {
     
     try {
       final expenses = await DatabaseService.instance.getExpensesByMonth(_currentMonth);
-      final budget = SettingsService.instance.getBudgetForMonth(_currentMonth);
+      
+      // Get the budget for this month
+      // If this month doesn't have a specific budget set, lock it in now
+      var budget = SettingsService.instance.getMonthlyBudget(_currentMonth);
+      if (budget == null) {
+        // First time viewing this month - lock in the default budget
+        budget = SettingsService.instance.getDefaultBudget();
+        await SettingsService.instance.setMonthlyBudget(_currentMonth, budget);
+      }
       
       setState(() {
         _budgetData = BudgetData(
           month: _currentMonth,
-          initialAllocation: budget,
+          initialAllocation: budget!,
           expenses: expenses,
         );
         _isLoading = false;
@@ -105,14 +113,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
       _currentMonth.month + monthOffset,
     );
     
-    // Limit to 12 months back
-    final oldestAllowed = DateTime(
-      DateTime.now().year,
-      DateTime.now().month - 11,
-    );
+    // Allow unlimited backward navigation, but can't go beyond current month
+    final now = DateTime.now();
+    final nextMonth = DateTime(now.year, now.month + 1);
     
-    if (newDate.isAfter(oldestAllowed) && 
-        newDate.isBefore(DateTime.now().add(const Duration(days: 1)))) {
+    if (newDate.isBefore(nextMonth)) {
       _currentMonth = newDate;
       await _loadMonthData();
     }
@@ -211,8 +216,9 @@ class _BudgetScreenState extends State<BudgetScreen> {
       MaterialPageRoute(builder: (context) => const SettingsScreen()),
     );
     
+    // Default budget changes don't affect current or past months
+    // Only monthly budget overrides trigger a reload
     if (result == true) {
-      // Budget was changed, reload data
       await _loadMonthData();
     }
   }
@@ -291,6 +297,25 @@ class _BudgetScreenState extends State<BudgetScreen> {
     }
   }
 
+  Future<void> _exportData() async {
+    final l10n = LocalizationService.of(context);
+    
+    try {
+      await DatabaseService.instance.exportToCSV(l10n);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.exportSuccess)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${l10n.exportError}: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isCurrentMonth = _currentMonth.year == DateTime.now().year &&
@@ -319,20 +344,70 @@ class _BudgetScreenState extends State<BudgetScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_calendar),
-            onPressed: _editMonthlyBudget,
-            tooltip: LocalizationService.of(context).monthlyBudget,
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: _openSettings,
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
             tooltip: LocalizationService.of(context).settings,
-          ),
-          IconButton(
-            icon: const Icon(Icons.language),
-            tooltip: 'Change language / Changer la langue',
-            onPressed: widget.onLanguageToggle,
+            onSelected: (value) {
+              switch (value) {
+                case 'monthly_budget':
+                  _editMonthlyBudget();
+                  break;
+                case 'settings':
+                  _openSettings();
+                  break;
+                case 'language':
+                  widget.onLanguageToggle();
+                  break;
+                case 'export':
+                  _exportData();
+                  break;
+              }
+            },
+            itemBuilder: (context) {
+              final l10n = LocalizationService.of(context);
+              return [
+                PopupMenuItem(
+                  value: 'monthly_budget',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.edit_calendar),
+                      const SizedBox(width: 12),
+                      Text(l10n.monthlyBudget),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'settings',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.settings),
+                      const SizedBox(width: 12),
+                      Text(l10n.settings),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'language',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.language),
+                      const SizedBox(width: 12),
+                      const Text('Language / Langue'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'export',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.upload_file),
+                      const SizedBox(width: 12),
+                      Text(l10n.exportData),
+                    ],
+                  ),
+                ),
+              ];
+            },
           ),
         ],
       ),
@@ -356,7 +431,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                         crossAxisCount: 2,
                         crossAxisSpacing: 8,
                         mainAxisSpacing: 8,
-                        childAspectRatio: 1.2,
+                        childAspectRatio: 1.5,
                       ),
                       itemCount: _categories.length,
                       itemBuilder: (context, index) {

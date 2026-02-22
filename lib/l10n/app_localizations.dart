@@ -61,6 +61,12 @@ abstract class AppLocalizations {
   String get november;
   String get december;
   
+  // Export
+  String get exportData;
+  String get exportSuccess;
+  String get exportError;
+  String get noDataToExport;
+  
   List<String> get monthNames => [
         january, february, march, april, may, june,
         july, august, september, october, november, december

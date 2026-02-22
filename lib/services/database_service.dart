@@ -1,6 +1,11 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:share_plus/share_plus.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 import '../models/expense.dart';
+import '../models/category.dart';
+import '../services/settings_service.dart';
 
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._init();
@@ -117,5 +122,80 @@ class DatabaseService {
   Future<void> close() async {
     final db = await database;
     await db.close();
+  }
+
+  Future<String> exportToCSV(dynamic l10n) async {
+    // Get all expenses sorted by date
+    final expenses = await getAllExpenses();
+    expenses.sort((a, b) => a.date.compareTo(b.date));
+
+    if (expenses.isEmpty) {
+      throw Exception('No expenses to export');
+    }
+
+    // Get categories for name lookup
+    final categories = getDefaultCategories();
+    final categoryMap = {for (var cat in categories) cat.id: cat};
+
+    // Build CSV content
+    final buffer = StringBuffer();
+    buffer.writeln('Date,Budget,Category,Description,Amount,Cumulative,Remaining');
+
+    // Group by month to calculate cumulative and remaining
+    String? currentMonthKey;
+    double monthlyBudget = 0;
+    double cumulative = 0;
+
+    for (var expense in expenses) {
+      final monthKey = '${expense.date.year}-${expense.date.month.toString().padLeft(2, '0')}';
+      
+      // Reset cumulative when we enter a new month
+      if (monthKey != currentMonthKey) {
+        currentMonthKey = monthKey;
+        cumulative = 0;
+        
+        // Get budget for this month
+        final monthDate = DateTime(expense.date.year, expense.date.month);
+        monthlyBudget = SettingsService.instance.getMonthlyBudget(monthDate) ?? 
+                        SettingsService.instance.getDefaultBudget();
+      }
+
+      cumulative += expense.amount;
+      final remaining = monthlyBudget - cumulative;
+
+      // Get category name
+      final category = categoryMap[expense.categoryId];
+      final categoryName = category?.getLocalizedName(l10n) ?? expense.categoryId;
+
+      // Format row: Date,Budget,Category,Description,Amount,Cumulative,Remaining
+      buffer.writeln(
+        '${_formatDate(expense.date)},'
+        '${monthlyBudget.toStringAsFixed(2)},'
+        '"$categoryName",'
+        '"${expense.description}",'
+        '${expense.amount.toStringAsFixed(2)},'
+        '${cumulative.toStringAsFixed(2)},'
+        '${remaining.toStringAsFixed(2)}'
+      );
+    }
+
+    // Save to temporary file
+    final directory = await getTemporaryDirectory();
+    final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-').split('.')[0];
+    final file = File('${directory.path}/spendinator_export_$timestamp.csv');
+    await file.writeAsString(buffer.toString());
+
+    // Share the file
+    await Share.shareXFiles(
+      [XFile(file.path)],
+      subject: 'Spendinator Export',
+      text: 'Expense data exported from Spendinator',
+    );
+
+    return file.path;
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }

@@ -36,7 +36,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${l10n.defaultBudget}: ${l10n.formatCurrency(amount)}')),
         );
-        Navigator.pop(context, true); // Return true to indicate budget changed
+        Navigator.pop(context, false); // Return false - default budget doesn't affect current month
       }
     }
   }

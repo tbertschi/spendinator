@@ -153,4 +153,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get december => 'December';
+
+  @override
+  String get exportData => 'Export Data';
+
+  @override
+  String get exportSuccess => 'Data exported successfully';
+
+  @override
+  String get exportError => 'Error exporting data';
+
+  @override
+  String get noDataToExport => 'No data to export';
 }

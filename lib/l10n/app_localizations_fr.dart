@@ -153,4 +153,16 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get december => 'Décembre';
+
+  @override
+  String get exportData => 'Exporter les données';
+
+  @override
+  String get exportSuccess => 'Données exportées avec succès';
+
+  @override
+  String get exportError => 'Erreur lors de l\'exportation';
+
+  @override
+  String get noDataToExport => 'Aucune donnée à exporter';
 }
