@@ -48,4 +48,13 @@ class SettingsService {
   String getLanguage() {
     return _prefs?.getString('language') ?? 'fr';
   }
+
+  // Dark theme preference
+  Future<void> setDarkTheme(bool isDark) async {
+    await _prefs?.setBool('dark_theme', isDark);
+  }
+
+  bool getDarkTheme() {
+    return _prefs?.getBool('dark_theme') ?? false;
+  }
 }

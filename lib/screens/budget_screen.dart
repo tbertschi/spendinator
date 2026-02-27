@@ -13,10 +13,13 @@ import 'settings_screen.dart';
 
 class BudgetScreen extends StatefulWidget {
   final VoidCallback onLanguageToggle;
-  
-  const BudgetScreen({super.key, required this.onLanguageToggle});
+  final VoidCallback onDarkThemeToggle;
 
-  @override
+  const BudgetScreen({
+    super.key,
+    required this.onLanguageToggle,
+    required this.onDarkThemeToggle,
+  });
   State<BudgetScreen> createState() => _BudgetScreenState();
 }
 
@@ -358,6 +361,9 @@ class _BudgetScreenState extends State<BudgetScreen> {
                 case 'language':
                   widget.onLanguageToggle();
                   break;
+                case 'dark_theme':
+                  widget.onDarkThemeToggle();
+                  break;
                 case 'export':
                   _exportData();
                   break;
@@ -397,6 +403,16 @@ class _BudgetScreenState extends State<BudgetScreen> {
                   ),
                 ),
                 PopupMenuItem(
+                  value: 'dark_theme',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.dark_mode),
+                      const SizedBox(width: 12),
+                      const Text('Dark Theme'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
                   value: 'export',
                   child: Row(
                     children: [
@@ -425,12 +441,12 @@ class _BudgetScreenState extends State<BudgetScreen> {
                 Expanded(
                   flex: 3,
                   child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(4.0),
                     child: GridView.builder(
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
+                        crossAxisSpacing: 6,
+                        mainAxisSpacing: 6,
                         childAspectRatio: 1.5,
                       ),
                       itemCount: _categories.length,

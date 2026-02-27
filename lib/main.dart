@@ -20,19 +20,28 @@ class SpendinatorApp extends StatefulWidget {
 }
 
 class _SpendinatorAppState extends State<SpendinatorApp> {
-  late String currentLanguage;
+  String currentLanguage = 'fr';
+  bool isDarkTheme = false;
 
   @override
   void initState() {
     super.initState();
-    // Load saved language preference
+    // Load saved preferences
     currentLanguage = SettingsService.instance.getLanguage();
+    isDarkTheme = SettingsService.instance.getDarkTheme();
   }
 
   void toggleLanguage() {
     setState(() {
       currentLanguage = currentLanguage == 'fr' ? 'en' : 'fr';
       SettingsService.instance.setLanguage(currentLanguage);
+    });
+  }
+
+  void toggleDarkTheme() {
+    setState(() {
+      isDarkTheme = !isDarkTheme;
+      SettingsService.instance.setDarkTheme(isDarkTheme);
     });
   }
 
@@ -49,7 +58,18 @@ class _SpendinatorAppState extends State<SpendinatorApp> {
           ),
           useMaterial3: true,
         ),
-        home: BudgetScreen(onLanguageToggle: toggleLanguage),
+        darkTheme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.teal,
+            brightness: Brightness.dark,
+          ),
+          useMaterial3: true,
+        ),
+        themeMode: isDarkTheme ? ThemeMode.dark : ThemeMode.light,
+        home: BudgetScreen(
+          onLanguageToggle: toggleLanguage,
+          onDarkThemeToggle: toggleDarkTheme,
+        ),
       ),
     );
   }

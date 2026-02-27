@@ -40,8 +40,8 @@ class BudgetGraph extends StatelessWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
@@ -58,11 +58,11 @@ class BudgetGraph extends StatelessWidget {
                 children: [
                   Text(
                     l10n.remaining,
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: Theme.of(context).textTheme.labelSmall,
                   ),
                   Text(
                     l10n.formatCurrency(budgetData.remaining),
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: budgetData.remaining >= 0
                               ? Colors.green.shade700
@@ -76,7 +76,7 @@ class BudgetGraph extends StatelessWidget {
                 children: [
                   Text(
                     l10n.spent,
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: Theme.of(context).textTheme.labelSmall,
                   ),
                   Text(
                     l10n.formatCurrency(budgetData.totalSpent),
@@ -88,7 +88,7 @@ class BudgetGraph extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           
           // Line chart
           Expanded(
@@ -145,7 +145,7 @@ class BudgetLinePainter extends CustomPainter {
     const leftPadding = 10.0;
     const rightPadding = 10.0;
     const topPadding = 10.0;
-    const bottomPadding = 25.0;
+    const bottomPadding = 15.0;
 
     final chartWidth = size.width - leftPadding - rightPadding;
     final chartHeight = size.height - topPadding - bottomPadding;
