@@ -20,6 +20,7 @@ class BudgetScreen extends StatefulWidget {
     required this.onLanguageToggle,
     required this.onDarkThemeToggle,
   });
+  @override
   State<BudgetScreen> createState() => _BudgetScreenState();
 }
 
